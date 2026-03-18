@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cids - Hook</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    body {
+      overflow: hidden;
+      background: #000;
+    }
+
+    .bg-video {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      background: #000;
+    }
+
+    .bg-video video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      filter: brightness(0.6);
+    }
+
+    .centered {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      color: #fff;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 4vw, 3rem);
+      text-shadow: 0 4px 18px rgba(0,0,0,0.6);
+    }
+
+    p {
+      max-width: 60ch;
+      opacity: 0.95;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      -webkit-appearance: none;
+      appearance: none;
+      border: 0;
+      padding: 0.75rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    }
+
+    .btn:active { transform: translateY(1px); }
+
+    .btn-primary {
+      background: linear-gradient(90deg,#06b6d4,#2563eb);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .start-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      cursor: pointer;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .start-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .start-text {
+      color: white;
+      font-size: clamp(2rem, 6vw, 4rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      text-shadow: 0 0 20px rgba(255,255,255,0.25);
+      animation: pulse 1.4s ease-in-out infinite;
+      user-select: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.75;
+      }
+      50% {
+        transform: scale(1.08);
+        opacity: 1;
+      }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 480px) {
+      .btn { padding: 0.6rem 1rem; font-size: 0.95rem; }
+      .btn-row { gap: 0.65rem; }
+    }
+
+    .spinbotguy {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .spinbotguy img {
+      width: 35px;
+      height: 35px;
+    }
+  </style>
+</head>
+<body>
+  <div class="start-overlay" id="startOverlay">
+    <div class="start-text">root@cids: ~ echo $welcome</div>
+  </div>
+
+  <div class="bg-video" aria-hidden="true">
+    <video id="bgVideo" loop playsinline preload="auto"></video>
+  </div>
+
+  <audio id="bgMusic" loop preload="auto">
+    <source src="assets/music.mp3" type="audio/mpeg">
+    <source src="assets/music.ogg" type="audio/ogg">
+  </audio>
+
+  <main class="centered" role="main">
+    <h1>Welcome<span class="spinbotguy"><img src="https://cdn.discordapp.com/emojis/1299393916117713016.webp?animated=true" alt="Welcome Emoji"></span></h1>
+    <p>
+      click somewhere to start the experience. Immerse yourself in a world of cutting-edge technology, where innovation meets creativity. Explore our projects, discover our vision, and join us on this exciting journey into the future of tech.
+    </p>
+
+    <div class="btn-row" role="navigation" aria-label="Main actions">
+      <button class="btn btn-primary" onclick="location.href='#'">Get Started</button>
+      <button class="btn btn-secondary" onclick="location.href='#'">Learn More</button>
+      <button class="btn btn-secondary" onclick="toggleMute(this)">Mute</button>
+    </div>
+  </main>
+
+  <script>
+    const startOverlay = document.getElementById('startOverlay');
+    const video = document.getElementById('bgVideo');
+    const music = document.getElementById('bgMusic');
+    let started = false;
+
+    const backgrounds = [
+      'assets/bg1.mp4',
+      'assets/bg2.mp4',
+      'assets/bg3.mp4'
+    ];
+
+    const randomBackground = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+    video.src = randomBackground;
+    video.load();
+
+    async function startExperience() {
+      if (started) return;
+      started = true;
+
+      startOverlay.classList.add('hidden');
+
+      try {
+        if (video) {
+          video.muted = false;
+          await video.play();
+        }
+      } catch (err) {
+        console.log('could not start video with sound:', err);
+      }
+
+      try {
+        if (music) {
+          await music.play();
+        }
+      } catch (err) {
+        console.log('could not start music:', err);
+      }
+    }
+
+    startOverlay.addEventListener('click', startExperience);
+    document.addEventListener('click', startExperience);
+
+    function toggleMute(button) {
+      if (video) {
+        video.muted = !video.muted;
+      }
+
+      if (music) {
+        music.muted = !music.muted;
+      }
+
+      const isMuted = (video && video.muted) || (music && music.muted);
+      button.textContent = isMuted ? 'Unmute' : 'Mute';
+    }
+  </script>
+</body>
+</html>
